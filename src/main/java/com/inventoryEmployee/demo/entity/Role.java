@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.inventoryEmployee.demo.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 

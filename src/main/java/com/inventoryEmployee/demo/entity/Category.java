@@ -1,5 +1,7 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -34,12 +36,15 @@ public class Category extends BaseEntity {
     // Self-referencing for parent category
     @ManyToOne
     @JoinColumn(name = "parent_category_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "employees","products"})
     private Category parentCategory;
 
     // Relationships
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Product> products;
 
     @OneToMany(mappedBy = "parentCategory")
+    @JsonIgnore
     private List<Category> subCategories;
 }

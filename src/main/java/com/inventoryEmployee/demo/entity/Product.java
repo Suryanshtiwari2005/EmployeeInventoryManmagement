@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inventoryEmployee.demo.enums.ProductStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -65,13 +66,16 @@ public class Product extends BaseEntity {
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
+    @JsonIgnore
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
+    @JsonIgnore
     private Supplier supplier;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Inventory inventory;
 }
 

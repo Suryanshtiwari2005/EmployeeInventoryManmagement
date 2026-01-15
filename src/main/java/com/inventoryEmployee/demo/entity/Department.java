@@ -1,6 +1,7 @@
 package com.inventoryEmployee.demo.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -34,5 +35,6 @@ public class Department extends BaseEntity {
 
     // Relationships
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Employee> employees;
 }
