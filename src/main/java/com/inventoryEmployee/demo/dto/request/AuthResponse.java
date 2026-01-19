@@ -1,4 +1,4 @@
-package com.inventoryEmployee.demo.dto;
+package com.inventoryEmployee.demo.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

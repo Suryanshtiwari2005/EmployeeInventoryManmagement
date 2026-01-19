@@ -67,6 +67,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "AND YEAR(e.hireDate) = YEAR(CURRENT_DATE) AND e.deleted = false")
     List<Employee> findEmployeesHiredThisMonth();
 
+    // In EmployeeRepository
+    @Query("SELECT COUNT(e) FROM Employee e WHERE e.hireDate BETWEEN :startDate AND :endDate")
+    Long countEmployeesHiredThisMonth(@Param("startDate") LocalDate start, @Param("endDate") LocalDate end);
+
     // Custom search with multiple filters
     @Query("SELECT e FROM Employee e WHERE " +
             "(:departmentId IS NULL OR e.department.id = :departmentId) AND " +

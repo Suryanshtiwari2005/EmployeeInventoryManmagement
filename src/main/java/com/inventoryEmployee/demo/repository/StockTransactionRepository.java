@@ -65,6 +65,8 @@ public interface StockTransactionRepository extends JpaRepository<StockTransacti
             "WHERE st.product.id = :productId AND st.type = 'OUT'")
     Integer getTotalQuantityOut(@Param("productId") Long productId);
 
+    long countByTransactionDateBetween(LocalDateTime start, LocalDateTime end);
+
     // Advanced search with filters
     @Query("SELECT st FROM StockTransaction st WHERE " +
             "(:productId IS NULL OR st.product.id = :productId) AND " +

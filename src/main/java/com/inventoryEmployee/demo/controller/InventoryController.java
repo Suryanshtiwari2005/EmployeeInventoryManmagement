@@ -1,11 +1,11 @@
 package com.inventoryEmployee.demo.controller;
 
-import com.inventoryEmployee.demo.dto.InventoryRequest;
-import com.inventoryEmployee.demo.dto.StockAdjustmentRequest;
+import com.inventoryEmployee.demo.dto.request.InventoryRequest;
+import com.inventoryEmployee.demo.dto.request.StockAdjustmentRequest;
+import com.inventoryEmployee.demo.dto.response.InventoryResponse;
 import com.inventoryEmployee.demo.entity.Employee;
 import com.inventoryEmployee.demo.entity.Inventory;
 import com.inventoryEmployee.demo.entity.Product;
-import com.inventoryEmployee.demo.entity.User;
 import com.inventoryEmployee.demo.enums.StockMovementReason;
 import com.inventoryEmployee.demo.repository.EmployeeRepository;
 import com.inventoryEmployee.demo.repository.ProductRepository;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/inventory")
@@ -57,43 +58,46 @@ public class InventoryController {
     // Get inventory by ID
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<Inventory> getInventoryById(@PathVariable Long id) {
+    public ResponseEntity<InventoryResponse> getInventoryById(@PathVariable Long id) {
         Inventory inventory = inventoryService.getInventoryById(id);
-        return ResponseEntity.ok(inventory);
+        return ResponseEntity.ok(mapToResponse(inventory));
     }
 
     // Get inventory by product ID
     @GetMapping("/product/{productId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<Inventory> getInventoryByProductId(@PathVariable Long productId) {
+    public ResponseEntity<InventoryResponse> getInventoryByProductId(@PathVariable Long productId) {
         Inventory inventory = inventoryService.getInventoryByProductId(productId);
-        return ResponseEntity.ok(inventory);
+        return ResponseEntity.ok(mapToResponse(inventory));
     }
 
     // Get all inventory
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<Page<Inventory>> getAllInventory(Pageable pageable) {
+    public ResponseEntity<Page<InventoryResponse>> getAllInventory(Pageable pageable) {
         Page<Inventory> inventory = inventoryService.getAllInventory(pageable);
-        return ResponseEntity.ok(inventory);
+
+        Page<InventoryResponse> responsePage = inventory.map(this::mapToResponse);
+
+        return ResponseEntity.ok(responsePage);
     }
 
     // Update inventory settings
     @PutMapping("/{id}/settings")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Inventory> updateInventorySettings(
+    public ResponseEntity<InventoryResponse> updateInventorySettings(
             @PathVariable Long id,
             @Valid @RequestBody InventoryRequest request) {
-        Inventory inventoryEntity = mapInventoryRequesttoEntity(request);
+        Inventory inventoryEntity = mapInventoryRequestEntity(request);
 
         Inventory updated = inventoryService.updateInventorySettings(id, inventoryEntity);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(mapToResponse(updated));
     }
 
     // Add stock (IN transaction)
     @PostMapping("/add-stock")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<Inventory> addStock(
+    public ResponseEntity<InventoryResponse> addStock(
             @RequestBody StockAdjustmentRequest request,
             Authentication authentication) {
 
@@ -101,65 +105,40 @@ public class InventoryController {
         Employee employee = getEmployeeFromAuth(authentication);
 
         // Use the quantity field for ADD operation
-        Inventory inventory = inventoryService.addStock(
+        Inventory inventory = inventoryService.removeStock(
                 request.getProductId(),
-                request.getQuantity(),  // Use quantity, not newQuantity
+                request.getQuantity(),
                 request.getReason(),
                 request.getNotes(),
-                employee.getId()
+                employee
         );
 
-        return ResponseEntity.ok(inventory);
+        return ResponseEntity.ok(mapToResponse(inventory));
 
-//        Long productId = request.getProductId();
-//        Integer quantity = request.getNewQuantity();
-//        StockMovementReason reason = request.getReason();
-//        String notes = request.getNotes();
-//
-//        System.out.print("Add Stock Called");
-////------------------------------------------
-//        // 2. FIXED LOGIC: Get User first, then Employee
-//        String currentUsername = authentication.getName();
-//
-//        // Find the User credential first
-//        User user = userRepository.findByUsername(currentUsername)
-//                .orElseThrow(() -> new RuntimeException("User account not found"));
-//
-//        // Get the Employee profile linked to this User
-//        Employee employee = user.getEmployee();
-//
-//        // Safety check in case the link is broken
-//        if (employee == null) {
-//            throw new RuntimeException("This user is not linked to any Employee profile");
-//        }
-////------------------------------------------
-//        Inventory inventory = inventoryService.addStock(productId, quantity, reason, notes, employee.getId());
-//        return ResponseEntity.ok(inventory);
     }
 
     // Remove stock (OUT transaction)
     @PostMapping("/remove-stock")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<Inventory> removeStock(
-            @RequestBody Map<String, Object> request,
+    public ResponseEntity<InventoryResponse> removeStock(
+            @RequestBody StockAdjustmentRequest request,
             Authentication authentication) {
 
-        Long productId = Long.valueOf(request.get("productId").toString());
-        Integer quantity = Integer.valueOf(request.get("quantity").toString());
-        StockMovementReason reason = StockMovementReason.valueOf(request.get("reason").toString());
-        String notes = request.get("notes") != null ? request.get("notes").toString() : null;
-
         Employee employee = getEmployeeFromAuth(authentication);
-
-//------------------------------------------------------------------------------------------------------------------------------
-        Inventory inventory = inventoryService.removeStock(productId, quantity, reason, notes, employee);
-        return ResponseEntity.ok(inventory);
+        Inventory inventory = inventoryService.removeStock(
+                request.getProductId(),
+                request.getQuantity(),
+                request.getReason(),
+                request.getNotes(),
+                employee
+        );
+        return ResponseEntity.ok(mapToResponse(inventory));
     }
 
     // Adjust stock (ADJUSTMENT transaction)
     @PostMapping("/adjust-stock")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Inventory> adjustStock(
+    public ResponseEntity<InventoryResponse> adjustStock(
             @RequestBody StockAdjustmentRequest request,
             Authentication authentication) {
 
@@ -169,39 +148,52 @@ public class InventoryController {
         // Use the quantity field for ADD operation
         Inventory inventory = inventoryService.addStock(
                 request.getProductId(),
-                request.getQuantity(),  // Use quantity, not newQuantity
+                request.getNewQuantity(),  // Use quantity, not newQuantity
                 request.getReason(),
                 request.getNotes(),
-                employee
+                employee.getId()
         );
-        Employee employee = getEmployeeFromAuth(authentication);
 
-        Inventory inventory = inventoryService.adjustStock(productId, newQuantity, reason, notes, employee);
-        return ResponseEntity.ok(inventory);
+        return ResponseEntity.ok(mapToResponse(inventory));
     }
 
     // Get low stock items
     @GetMapping("/low-stock")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<List<Inventory>> getLowStockItems() {
+    public ResponseEntity<List<InventoryResponse>> getLowStockItems() {
         List<Inventory> inventory = inventoryService.getLowStockItems();
-        return ResponseEntity.ok(inventory);
+
+        List<InventoryResponse> responseList = inventory.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
     }
 
     // Get out of stock items
     @GetMapping("/out-of-stock")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<List<Inventory>> getOutOfStockItems() {
+    public ResponseEntity<List<InventoryResponse>> getOutOfStockItems() {
         List<Inventory> inventory = inventoryService.getOutOfStockItems();
-        return ResponseEntity.ok(inventory);
+
+        List<InventoryResponse> responseList = inventory.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
     }
 
     // Get overstocked items
     @GetMapping("/overstocked")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<List<Inventory>> getOverstockedItems() {
+    public ResponseEntity<List<InventoryResponse>> getOverstockedItems() {
         List<Inventory> inventory = inventoryService.getOverstockedItems();
-        return ResponseEntity.ok(inventory);
+
+        List<InventoryResponse> responseList = inventory.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
     }
 
     // Calculate total inventory value
@@ -231,13 +223,16 @@ public class InventoryController {
     // Search inventory with filters
     @GetMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<Page<Inventory>> filterInventory(
+    public ResponseEntity<Page<InventoryResponse>> filterInventory(
             @RequestParam(required = false) String location,
             @RequestParam(required = false) String searchTerm,
             Pageable pageable) {
         Page<Inventory> inventory = inventoryService.searchInventoryWithFilters(
                 location, searchTerm, pageable);
-        return ResponseEntity.ok(inventory);
+
+        Page<InventoryResponse> responsePage = inventory.map(this::mapToResponse);
+
+        return ResponseEntity.ok(responsePage);
     }
 
     private Inventory maptoEntity(StockAdjustmentRequest request){
@@ -258,7 +253,7 @@ public class InventoryController {
         return inventory;
     }
 
-    private Inventory mapInventoryRequesttoEntity(InventoryRequest request){
+    private Inventory mapInventoryRequestEntity(InventoryRequest request){
         Inventory inventory = new Inventory();
 
         inventory.setId(request.getProductId());
@@ -283,5 +278,38 @@ public class InventoryController {
 
         return inventory;
 
+    }
+
+    private InventoryResponse mapToResponse(Inventory inventory) {
+        return InventoryResponse.builder()
+                .id(inventory.getId())
+                .productId(inventory.getProduct().getId())
+                .productName(inventory.getProduct().getName())
+                .productSku(inventory.getProduct().getSku())
+
+                .quantityAvailable(inventory.getQuantityAvailable())
+                .minStockLevel(inventory.getMinStockLevel())
+                .maxStockLevel(inventory.getMaxStockLevel())
+                .reorderPoint(inventory.getReorderPoint())
+                .reorderQuantity(inventory.getReorderQuantity())
+
+                .location(inventory.getLocation())
+                .binNumber(inventory.getBinNumber())
+                .rackNumber(inventory.getRackNumber())
+
+                .lowStockAlertEnabled(inventory.getLowStockAlertEnabled())
+                .isActive(inventory.getIsActive())
+
+                .lastRestockDate(inventory.getLastRestockDate())
+                .lastSaleDate(inventory.getLastSaleDate())
+
+                // Logic for Calculated Fields
+                .isLowStock(inventory.getQuantityAvailable() <= inventory.getMinStockLevel())
+                .isOutOfStock(inventory.getQuantityAvailable() <= 0)
+                .isOverstocked(inventory.getQuantityAvailable() > inventory.getMaxStockLevel())
+
+                .createdAt(inventory.getCreatedAt())
+                .updatedAt(inventory.getUpdatedAt())
+                .build();
     }
 }

@@ -1,6 +1,8 @@
 package com.inventoryEmployee.demo.controller;
 
+import com.inventoryEmployee.demo.dto.request.SupplierRequest;
 import com.inventoryEmployee.demo.entity.Supplier;
+import com.inventoryEmployee.demo.enums.SupplierStatus;
 import com.inventoryEmployee.demo.repository.SupplierRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,9 @@ public class SupplierController {
     // Create supplier
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Supplier> createSupplier(@Valid @RequestBody Supplier supplier) {
+    public ResponseEntity<Supplier> createSupplier(@Valid @RequestBody SupplierRequest request) {
+        Supplier supplier = maptoEntity(request);
+
         Supplier created = supplierRepository.save(supplier);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
@@ -48,21 +52,26 @@ public class SupplierController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Supplier> updateSupplier(@PathVariable Long id,
-                                                   @Valid @RequestBody Supplier supplier) {
+                                                   @Valid @RequestBody SupplierRequest request) {
+
         Supplier existing = supplierRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
-        existing.setName(supplier.getName());
-        existing.setContactPerson(supplier.getContactPerson());
-        existing.setEmail(supplier.getEmail());
-        existing.setPhone(supplier.getPhone());
-        existing.setAddress(supplier.getAddress());
-        existing.setCity(supplier.getCity());
-        existing.setState(supplier.getState());
-        existing.setCountry(supplier.getCountry());
-        existing.setZipCode(supplier.getZipCode());
-        existing.setTaxId(supplier.getTaxId());
-        existing.setStatus(supplier.getStatus());
+        existing.setName(request.getName());
+        existing.setContactPerson(request.getContactPerson());
+        existing.setEmail(request.getEmail());
+        existing.setPhone(request.getPhone());
+        existing.setAddress(request.getAddress());
+        existing.setCity(request.getCity());
+        existing.setState(request.getState());
+        existing.setCountry(request.getCountry());
+        existing.setZipCode(request.getZipCode());
+        existing.setTaxId(request.getTaxId());
+        existing.setStatus(request.getStatus());
+
+        if (request.getStatus() != null) {
+            existing.setStatus(request.getStatus());
+        }
 
         Supplier updated = supplierRepository.save(existing);
         return ResponseEntity.ok(updated);
@@ -77,5 +86,31 @@ public class SupplierController {
         supplier.setDeleted(true);
         supplierRepository.save(supplier);
         return ResponseEntity.noContent().build();
+    }
+
+    private Supplier maptoEntity(SupplierRequest request){
+        Supplier supplier = new Supplier();
+
+        supplier.setName(request.getName());
+        supplier.setContactPerson(request.getContactPerson());
+        supplier.setEmail(request.getEmail());
+        supplier.setPhone(request.getPhone());
+        supplier.setAlternatePhone(request.getAlternatePhone());
+        supplier.setAddress(request.getAddress());
+        supplier.setCity(request.getCity());
+        supplier.setState(request.getState());
+        supplier.setCountry(request.getCountry());
+        supplier.setZipCode(request.getZipCode());
+        supplier.setTaxId(request.getTaxId());
+        supplier.setNotes(request.getNotes());
+        supplier.setStatus(request.getStatus());
+
+        if(request.getStatus() != null){
+            supplier.setStatus(request.getStatus());
+        }else{
+            supplier.setStatus(SupplierStatus.ACTIVE);
+        }
+
+        return supplier;
     }
 }

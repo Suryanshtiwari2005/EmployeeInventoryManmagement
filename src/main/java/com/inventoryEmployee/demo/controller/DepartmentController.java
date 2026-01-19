@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.controller;
 
+import com.inventoryEmployee.demo.dto.request.DepartmentRequest;
 import com.inventoryEmployee.demo.entity.Department;
 import com.inventoryEmployee.demo.repository.DepartmentRepository;
 import jakarta.validation.Valid;
@@ -10,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -72,5 +71,17 @@ public class DepartmentController {
         department.setDeleted(true);
         departmentRepository.save(department);
         return ResponseEntity.noContent().build();
+    }
+
+    private Department maptoEntity(DepartmentRequest request){
+        Department department = new Department();
+
+        department.setName(request.getName());
+        department.setDescription(request.getDescription());
+        department.setLocation(request.getLocation());
+        department.setHeadOfDepartment(request.getHeadOfDepartment());
+
+
+        return department;
     }
 }

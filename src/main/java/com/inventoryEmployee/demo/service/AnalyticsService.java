@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.service;
 
+import com.inventoryEmployee.demo.dto.response.DashboardKPIResponse;
 import com.inventoryEmployee.demo.enums.EmployeeStatus;
 import com.inventoryEmployee.demo.enums.OrderStatus;
 import com.inventoryEmployee.demo.repository.*;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,29 +26,45 @@ public class AnalyticsService {
     private final OrderRepository orderRepository;
     private final StockAlertRepository stockAlertRepository;
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final DepartmentRepository departmentRepository;
+    private final StockTransactionRepository stockTransactionRepository;
 
     // Get dashboard KPIs
-    public Map<String, Object> getDashboardKPIs() {
-        Map<String, Object> kpis = new HashMap<>();
+    public DashboardKPIResponse getDashboardKPIs() {
+        Double totalValue = inventoryRepository.calculateTotalInventoryValue();
+        LocalDate now = LocalDate.now();
+        LocalDate firstDayOfMonth = now.withDayOfMonth(1);
+        LocalDate lastDayOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay(); // e.g., 2023-10-27 00:00:00
+        LocalDateTime nowT = LocalDateTime.now();
 
-        // Inventory metrics
-        kpis.put("totalInventoryValue", inventoryRepository.calculateTotalInventoryValue());
-        kpis.put("lowStockCount", inventoryRepository.countLowStockItems());
-        kpis.put("outOfStockCount", inventoryRepository.countOutOfStockItems());
-        kpis.put("totalProducts", productRepository.count());
+        return DashboardKPIResponse.builder()
+                // Inventory metrics
+                .totalInventoryValue(totalValue != null ? totalValue : 0.0)
+                .lowStockCount(inventoryRepository.countLowStockItems())
+                .outOfStockCount(inventoryRepository.countOutOfStockItems())
+                .totalProducts(productRepository.count())
+                .totalCategories(categoryRepository.count()) // You missed this in your snippet
 
-        // Employee metrics
-        kpis.put("activeEmployees", employeeRepository.countByStatusAndDeletedFalse(EmployeeStatus.ACTIVE));
-        kpis.put("newHiresThisMonth", employeeRepository.findEmployeesHiredThisMonth().size());
+                // Employee metrics
+                .activeEmployees(employeeRepository.countByStatusAndDeletedFalse(EmployeeStatus.ACTIVE))
+                // OPTIMIZATION: Use count() instead of fetching the whole list just to size() it
+                .newHiresThisMonth(employeeRepository.countEmployeesHiredThisMonth(firstDayOfMonth,lastDayOfMonth))
+                .totalDepartments(departmentRepository.count())
 
-        // Order metrics
-        kpis.put("pendingOrders", orderRepository.countByStatusAndDeletedFalse(OrderStatus.PENDING));
-        kpis.put("completedOrders", orderRepository.countByStatusAndDeletedFalse(OrderStatus.DELIVERED));
+                // Order metrics
+                .pendingOrders(orderRepository.countByStatusAndDeletedFalse(OrderStatus.PENDING))
+                .completedOrders(orderRepository.countByStatusAndDeletedFalse(OrderStatus.DELIVERED))
+                .totalOrders(orderRepository.count())
 
-        // Alert metrics
-        kpis.put("unresolvedAlerts", stockAlertRepository.countByIsResolvedFalse());
+                // Alert metrics
+                .unresolvedAlerts(stockAlertRepository.countByIsResolvedFalse())
 
-        return kpis;
+                // Transaction metrics (if you need them)
+                .transactionsToday(stockTransactionRepository.countByTransactionDateBetween(startOfDay,nowT))
+
+                .build();
     }
 
     // Get inventory statistics

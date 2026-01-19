@@ -1,4 +1,4 @@
-package com.inventoryEmployee.demo.dto;
+package com.inventoryEmployee.demo.dto.request;
 
 import com.inventoryEmployee.demo.enums.StockMovementReason;
 import jakarta.validation.constraints.Min;

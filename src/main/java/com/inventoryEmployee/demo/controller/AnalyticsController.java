@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.controller;
 
+import com.inventoryEmployee.demo.dto.response.DashboardKPIResponse;
 import com.inventoryEmployee.demo.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,8 @@ public class AnalyticsController {
     // Get dashboard KPIs
     @GetMapping("/dashboard-kpis")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> getDashboardKPIs() {
-        Map<String, Object> kpis = analyticsService.getDashboardKPIs();
+    public ResponseEntity<DashboardKPIResponse> getDashboardKPIs() {
+        DashboardKPIResponse kpis = analyticsService.getDashboardKPIs();
         return ResponseEntity.ok(kpis);
     }
 

@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.controller;
 
+import com.inventoryEmployee.demo.dto.request.CategoryRequest;
 import com.inventoryEmployee.demo.entity.Category;
 import com.inventoryEmployee.demo.repository.CategoryRepository;
 import jakarta.validation.Valid;
@@ -10,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -24,7 +23,9 @@ public class CategoryController {
     // Create category
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) {
+    public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryRequest request) {
+        Category category = maptoEntity(request);
+
         Category created = categoryRepository.save(category);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
@@ -72,5 +73,24 @@ public class CategoryController {
         category.setDeleted(true);
         categoryRepository.save(category);
         return ResponseEntity.noContent().build();
+    }
+
+    private Category maptoEntity(CategoryRequest request){
+        Category category = new Category();
+
+        request.setName(request.getName());
+        request.setDescription(request.getDescription());
+        request.setCode(request.getCode());
+        request.setImageUrl(request.getImageUrl());
+        request.setParentCategoryId(request.getParentCategoryId());
+
+        if(request.getParentCategoryId() != null){
+            Category parent = categoryRepository.findById(request.getParentCategoryId())
+                    .orElseThrow(()->new RuntimeException("Parent Category Not Found: "+ request.getParentCategoryId()));
+
+            category.setParentCategory(parent);
+        }
+
+        return category;
     }
 }

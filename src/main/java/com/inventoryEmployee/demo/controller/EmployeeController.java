@@ -1,6 +1,7 @@
 package com.inventoryEmployee.demo.controller;
 
-import com.inventoryEmployee.demo.dto.EmployeeRequest;
+import com.inventoryEmployee.demo.dto.request.EmployeeRequest;
+import com.inventoryEmployee.demo.dto.response.EmployeeResponse;
 import com.inventoryEmployee.demo.entity.Employee;
 import com.inventoryEmployee.demo.entity.Department;
 import com.inventoryEmployee.demo.enums.EmployeeStatus;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -29,39 +31,40 @@ public class EmployeeController {
     // Create employee
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Employee> createEmployee(@Valid @RequestBody EmployeeRequest request) {
+    public ResponseEntity<EmployeeResponse> createEmployee(@Valid @RequestBody EmployeeRequest request) {
 
         Employee employeeEntity = mapToEntity(request);
 
         Employee created = employeeService.createEmployee(employeeEntity);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        return new ResponseEntity<>(mapToResponse(created), HttpStatus.CREATED);
     }
 
     // Get employee by ID
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
+    public ResponseEntity<EmployeeResponse> getEmployeeById(@PathVariable Long id) {
         Employee employee = employeeService.getEmployeeById(id);
-        return ResponseEntity.ok(employee);
+        return ResponseEntity.ok(mapToResponse(employee));
     }
 
     // Get all employees with pagination
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<Employee>> getAllEmployees(Pageable pageable) {
+    public ResponseEntity<Page<EmployeeResponse>> getAllEmployees(Pageable pageable) {
         Page<Employee> employees = employeeService.getAllEmployees(pageable);
-        return ResponseEntity.ok(employees);
+        Page<EmployeeResponse> responsePage = employees.map(this::mapToResponse);
+        return ResponseEntity.ok(responsePage);
     }
 
     // Update employee
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id,
+    public ResponseEntity<EmployeeResponse> updateEmployee(@PathVariable Long id,
                                                    @Valid @RequestBody EmployeeRequest request) {
         Employee employeeEntity = mapToEntity(request);
 
         Employee updated = employeeService.updateEmployee(id, employeeEntity);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(mapToResponse(updated));
     }
 
     // Delete employee (soft delete)
@@ -75,48 +78,63 @@ public class EmployeeController {
     // Search employees by name
     @GetMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<Employee>> searchEmployees(
+    public ResponseEntity<Page<EmployeeResponse>> searchEmployees(
             @RequestParam String searchTerm,
             Pageable pageable) {
         Page<Employee> employees = employeeService.searchEmployeesByName(searchTerm, pageable);
-        return ResponseEntity.ok(employees);
+        return ResponseEntity.ok(employees.map(this::mapToResponse));
     }
 
     // Get employees by department
     @GetMapping("/department/{departmentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<List<Employee>> getEmployeesByDepartment(@PathVariable Long departmentId) {
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesByDepartment(@PathVariable Long departmentId) {
         List<Employee> employees = employeeService.getEmployeesByDepartment(departmentId);
-        return ResponseEntity.ok(employees);
+
+        List<EmployeeResponse> responseList = employees.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
     }
 
     // Get employees by status
     @GetMapping("/status/{status}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<List<Employee>> getEmployeesByStatus(@PathVariable EmployeeStatus status) {
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesByStatus(@PathVariable EmployeeStatus status) {
         List<Employee> employees = employeeService.getEmployeesByStatus(status);
-        return ResponseEntity.ok(employees);
+
+        List<EmployeeResponse> responseList = employees.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
     }
 
     // Get employees hired this month
     @GetMapping("/hired-this-month")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<List<Employee>> getEmployeesHiredThisMonth() {
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesHiredThisMonth() {
         List<Employee> employees = employeeService.getEmployeesHiredThisMonth();
-        return ResponseEntity.ok(employees);
+
+        List<EmployeeResponse> responseList = employees.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
     }
 
     // Advanced search with filters
     @GetMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<Employee>> filterEmployees(
+    public ResponseEntity<Page<EmployeeResponse>> filterEmployees(
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) EmployeeStatus status,
             @RequestParam(required = false) String searchTerm,
             Pageable pageable) {
         Page<Employee> employees = employeeService.searchEmployeesWithFilters(
                 departmentId, status, searchTerm, pageable);
-        return ResponseEntity.ok(employees);
+        return ResponseEntity.ok(employees.map(this::mapToResponse));
     }
 
     // Count employees by department
@@ -159,5 +177,28 @@ public class EmployeeController {
         }
 
         return employee;
+    }
+
+    private EmployeeResponse mapToResponse(Employee employee){
+        return EmployeeResponse.builder()
+                .id(employee.getId())
+                .firstName(employee.getFirstName())
+                .lastName(employee.getLastName())
+                .email(employee.getEmail())
+                .phone(employee.getPhone())
+                .position(employee.getPosition())
+                .salary(employee.getSalary())
+                .hireDate(employee.getHireDate())
+                .address(employee.getAddress())
+                .city(employee.getCity())
+                .state(employee.getState())
+                .zipCode(employee.getZipCode())
+                .status(employee.getStatus())
+                .departmentName(employee.getDepartment() != null ? employee.getDepartment().getName():null)
+                .departmentId(employee.getDepartment() != null ? employee.getDepartment().getId():null)
+                .createdAt(employee.getCreatedAt())
+                .updatedAt(employee.getUpdatedAt())
+                .build();
+
     }
 }

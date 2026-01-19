@@ -1,8 +1,8 @@
 package com.inventoryEmployee.demo.controller;
 
-import com.inventoryEmployee.demo.dto.AuthResponse;
-import com.inventoryEmployee.demo.dto.LoginRequest;
-import com.inventoryEmployee.demo.dto.RegisterRequest;
+import com.inventoryEmployee.demo.dto.request.AuthResponse;
+import com.inventoryEmployee.demo.dto.request.LoginRequest;
+import com.inventoryEmployee.demo.dto.request.RegisterRequest;
 import com.inventoryEmployee.demo.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

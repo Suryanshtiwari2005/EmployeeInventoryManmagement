@@ -1,6 +1,6 @@
 package com.inventoryEmployee.demo.exception;
 
-import com.inventoryEmployee.demo.dto.ErrorResponse;
+import com.inventoryEmployee.demo.dto.request.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;

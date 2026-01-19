@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.controller;
 
+import com.inventoryEmployee.demo.dto.response.AuditLogResponse;
 import com.inventoryEmployee.demo.entity.AuditLog;
 import com.inventoryEmployee.demo.service.AuditService;
 import lombok.RequiredArgsConstructor;
@@ -23,36 +24,36 @@ public class AuditController {
     // Get audit logs for specific entity
     @GetMapping("/entity/{entityName}/{entityId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<AuditLog>> getAuditLogsByEntity(
+    public ResponseEntity<Page<AuditLogResponse>> getAuditLogsByEntity(
             @PathVariable String entityName,
             @PathVariable Long entityId,
             Pageable pageable) {
         Page<AuditLog> logs = auditService.getAuditLogsByEntity(entityName, entityId, pageable);
-        return ResponseEntity.ok(logs);
+        return ResponseEntity.ok(logs.map(this::mapToResponse));
     }
 
     // Get audit logs by user
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<AuditLog>> getAuditLogsByUser(
+    public ResponseEntity<Page<AuditLogResponse>> getAuditLogsByUser(
             @PathVariable Long userId,
             Pageable pageable) {
         Page<AuditLog> logs = auditService.getAuditLogsByUser(userId, pageable);
-        return ResponseEntity.ok(logs);
+        return ResponseEntity.ok(logs.map(this::mapToResponse));
     }
 
     // Get recent audit logs
     @GetMapping("/recent")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<AuditLog>> getRecentAuditLogs(Pageable pageable) {
+    public ResponseEntity<Page<AuditLogResponse>> getRecentAuditLogs(Pageable pageable) {
         Page<AuditLog> logs = auditService.getRecentAuditLogs(pageable);
-        return ResponseEntity.ok(logs);
+        return ResponseEntity.ok(logs.map(this::mapToResponse));
     }
 
     // Search with filters
     @GetMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<AuditLog>> filterAuditLogs(
+    public ResponseEntity<Page<AuditLogResponse>> filterAuditLogs(
             @RequestParam(required = false) String entityName,
             @RequestParam(required = false) String action,
             @RequestParam(required = false) Long userId,
@@ -61,6 +62,37 @@ public class AuditController {
             Pageable pageable) {
         Page<AuditLog> logs = auditService.searchAuditLogsWithFilters(
                 entityName, action, userId, startDate, endDate, pageable);
-        return ResponseEntity.ok(logs);
+        return ResponseEntity.ok(logs.map(this::mapToResponse));
+    }
+
+    private AuditLogResponse mapToResponse(AuditLog log) {
+        return AuditLogResponse.builder()
+                .id(log.getId())
+                .entityName(log.getEntityName())
+                .entityId(log.getEntityId())
+                .action(log.getAction())
+
+                // Handle User safely
+                .userId(log.getUser() != null ? log.getUser().getId() : null)
+                // Prefer the snapshot 'username' field if available, fallback to relation
+                .username(log.getUsername() != null ? log.getUsername() : (log.getUser() != null ? log.getUser().getUsername() : "System"))
+
+                .ipAddress(log.getIpAddress())
+                .endpoint(log.getEndpoint()) // Your entity has this field, so we can map it directly
+
+                .timestamp(log.getTimestamp())
+
+                // FIXED: Combine old/new values into the single 'changes' DTO field
+                .changes(formatChanges(log.getOldValue(), log.getNewValue()))
+
+                .build();
+    }
+    private String formatChanges(String oldVal, String newVal) {
+        if (oldVal == null && newVal == null) return null;
+        if (oldVal == null) return "Created: " + newVal;
+        if (newVal == null) return "Deleted: " + oldVal;
+
+        // For updates, show the transition
+        return "Old: " + oldVal + " -> New: " + newVal;
     }
 }

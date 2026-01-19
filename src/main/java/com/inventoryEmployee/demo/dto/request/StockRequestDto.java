@@ -1,4 +1,4 @@
-package com.inventoryEmployee.demo.dto;
+package com.inventoryEmployee.demo.dto.request;
 
 public class StockRequestDto {
     private Long productId;

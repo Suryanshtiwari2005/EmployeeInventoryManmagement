@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.controller;
 
+import com.inventoryEmployee.demo.dto.response.StockAlertResponse;
 import com.inventoryEmployee.demo.entity.StockAlert;
 import com.inventoryEmployee.demo.enums.AlertType;
 import com.inventoryEmployee.demo.service.StockAlertService;
@@ -24,17 +25,17 @@ public class StockAlertController {
     // Get unresolved alerts
     @GetMapping("/unresolved")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<StockAlert>> getUnresolvedAlerts(Pageable pageable) {
+    public ResponseEntity<Page<StockAlertResponse>> getUnresolvedAlerts(Pageable pageable) {
         Page<StockAlert> alerts = stockAlertService.getUnresolvedAlerts(pageable);
-        return ResponseEntity.ok(alerts);
+        return ResponseEntity.ok(alerts.map(this::mapToResponse));
     }
 
     // Get recent unresolved alerts
     @GetMapping("/recent")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<StockAlert>> getRecentUnresolvedAlerts(Pageable pageable) {
+    public ResponseEntity<Page<StockAlertResponse>> getRecentUnresolvedAlerts(Pageable pageable) {
         Page<StockAlert> alerts = stockAlertService.getRecentUnresolvedAlerts(pageable);
-        return ResponseEntity.ok(alerts);
+        return ResponseEntity.ok(alerts.map(this::mapToResponse));
     }
 
     // Resolve alert
@@ -59,13 +60,36 @@ public class StockAlertController {
     // Search alerts with filters
     @GetMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Page<StockAlert>> filterAlerts(
+    public ResponseEntity<Page<StockAlertResponse>> filterAlerts(
             @RequestParam(required = false) AlertType alertType,
             @RequestParam(required = false) Boolean isResolved,
             @RequestParam(required = false) Long productId,
             Pageable pageable) {
         Page<StockAlert> alerts = stockAlertService.searchAlertsWithFilters(
                 alertType, isResolved, productId, pageable);
-        return ResponseEntity.ok(alerts);
+        return ResponseEntity.ok(alerts.map(this::mapToResponse));
+    }
+
+    private StockAlertResponse mapToResponse(StockAlert alert) {
+        return StockAlertResponse.builder()
+                .id(alert.getId())
+
+                // Flatten Product Details safely
+                .productId(alert.getProduct() != null ? alert.getProduct().getId() : null)
+                .productName(alert.getProduct() != null ? alert.getProduct().getName() : "Unknown Product")
+                .productSku(alert.getProduct() != null ? alert.getProduct().getSku() : null)
+
+                .alertType(alert.getAlertType())
+                .currentQuantity(alert.getCurrentQuantity())
+                .threshold(alert.getThreshold())
+
+                .isResolved(alert.getIsResolved())
+                .emailSent(alert.getEmailSent())
+
+                .createdAt(alert.getCreatedAt())
+                .resolvedAt(alert.getResolvedAt())
+                .resolvedBy(alert.getResolvedBy()) // Assuming this is a String name in Entity
+                .notes(alert.getNotes())
+                .build();
     }
 }
