@@ -1,173 +1,253 @@
-Inventory & Employee Management Backend System
+# Inventory & Employee Management Backend System
 
-A Spring Boot–based backend system designed for organizations that require secure inventory control, employee accountability, and transaction-safe stock operations — without the overhead of full-scale ERP solutions.
+A **Spring Boot–based backend system** designed for organizations that require secure inventory control, employee accountability, and transaction-safe stock operations — without the complexity of full-scale ERP systems.
 
-This project emphasizes data integrity, auditability, concurrency safety, and clean backend architecture, making it both production-ready and recruiter-friendly.
+This project focuses on **data integrity, security, concurrency handling, and clean backend architecture**, making it production-ready and recruiter-friendly.
 
-Project Overview
+---
 
-The Inventory & Employee Management System is a RESTful backend application built using Spring Boot, implementing transaction-driven stock updates, role-based access control (RBAC), audit logging, and analytics dashboards.
+## Project Overview
 
-The system is designed to handle real-world operational workflows such as multi-user stock updates, employee accountability, reporting, and historical traceability.
+The Inventory & Employee Management System is a **RESTful backend application** built using **Spring Boot**, implementing transaction-driven stock updates, role-based access control (RBAC), audit logging, and operational analytics.
 
-Problem Statement
+The system follows a **clean layered architecture** and is designed to handle real-world workflows involving multiple users, concurrent updates, and strict traceability requirements.
 
-Most inventory systems fall into one of two categories:
+---
 
-Too basic → CRUD-only systems with no audit trail or concurrency handling
+## Problem Statement
 
-Too complex → ERP-level solutions that are heavy, rigid, and hard to customize
+Most inventory systems fall into two extremes:
 
-This project bridges the gap by providing:
+- **Too simple** → Basic CRUD systems with no transaction safety, audit trails, or access control  
+- **Too complex** → ERP-level solutions that are heavy, rigid, and difficult to customize  
 
-Transaction-safe inventory operations
+This project bridges that gap by offering:
 
-Secure multi-user access
+- Transaction-safe inventory operations  
+- Secure multi-user access  
+- Full audit and traceability  
+- Actionable analytics and reporting  
 
-Full audit and traceability
+---
 
-Actionable analytics and reports
+## Core Business Logic & Features
 
-Core Business Logic & Features
-Inventory Management
+### Inventory Management
+- Transaction-based stock IN / OUT handling  
+- Prevention of negative stock  
+- Stock adjustment with mandatory reasons (damaged, issued, returned, etc.)  
+- Custom low-stock thresholds per item  
+- Soft deletion to preserve historical data  
 
-Transaction-based stock IN/OUT handling
+### Audit & Accountability
+- Complete transaction and activity history  
+- Tracks **who did what and when**  
+- Stores user, timestamp, IP, and operation metadata  
+- Immutable audit logs for traceability  
 
-Prevention of negative stock
+### Security & Access Control
+- Stateless JWT authentication  
+- Role-Based Access Control (RBAC)  
+- Restricted API access based on role and responsibility  
 
-Stock adjustment with mandatory reasons (damaged, returned, issued, etc.)
+#### Roles
 
-Custom low-stock thresholds
+**ADMIN**
+- Full system access  
+- User and role management  
+- Audit logs and analytics access  
 
-Soft deletion to preserve historical data
+**MANAGER**
+- Inventory oversight  
+- Reports and dashboards  
+- Low-stock monitoring  
 
-Audit & Accountability
+**EMPLOYEE**
+- Inventory viewing  
+- Stock transactions  
+- Limited data visibility  
 
-Full transaction and activity history
+### Concurrency & Data Integrity
+- Optimistic locking to prevent lost updates  
+- Transactional boundaries to maintain consistency  
+- Safe handling of simultaneous stock updates  
 
-Tracks who did what and when
+### Reporting & Analytics
+- Inventory valuation  
+- Low-stock and slow-moving item detection  
+- Transaction history per employee  
+- Dashboard KPIs for operational insights  
+
+### Import / Export
+- Bulk inventory and employee import via CSV / Excel  
+- Export inventory and transaction data for reporting  
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-----|-----------|
+| Framework | Spring Boot |
+| Security | Spring Security (JWT, RBAC) |
+| ORM | Hibernate / JPA |
+| Database | MySQL / PostgreSQL |
+| Reporting | CSV / PDF |
+| Build Tool | Maven |
+| Tools | Git, Postman |
+
+---
 
-Immutable audit logs with user, timestamp, and action metadata
+## Backend Architecture
+
+### Controllers
+- RESTful endpoint exposure  
+- DTO-based request validation  
+- Clear HTTP request/response handling  
+
+### Services
+- Core business logic  
+- `@Transactional` boundaries for consistency  
+- Validation and rule enforcement  
+
+### Repositories
+- JPA repositories  
+- Custom queries for reporting and analytics  
+
+### Security
+- JWT-based stateless authentication  
+- Method-level authorization  
+- Fine-grained role enforcement  
+
+---
+
+## API Endpoints Overview
+
+### Authentication
+
+#### Register User  
+**POST /api/auth/register**
+
+```json
+{
+  "username": "mark",
+  "email": "mark@staff.com",
+  "password": "mark123",
+  "role": "STAFF"
+}
+```
+#### Supported Roles:Admin,Manager,Employee
+
+#### Login
+**POST /api/auth/login
+
+```json
+{
+  "username": "staff",
+  "password": "staff123"
+}
+```
+#### Returns a JWT token required for all authenticated requests.
+
+### Inventory
+### Create Product (Admin / Manager Only)
+#### POST /api/products
+
+```json
+{
+  "sku": "009",
+  "name": "Earbuds",
+  "category": "Electronics",
+  "costPrice": 900.00,
+  "sellingPrice": 1200.00,
+  "quantity": 50
+}
+```
+#### Creates a new product with initial stock.
+
+### Stock Transactions
+### Adjust Stock
+#### POST /api/stock/adjust
+
+```json
+{
+  "productId": 1,
+  "quantity": -5,
+  "reason": "DAMAGED"
+}
+```
+#### Adjusts inventory stock with a mandatory reason.
+
+### Get Transaction History
+### GET /api/stock/transactions
+#### Returns complete stock transaction history with audit details.
+
+### Low Stock Alerts
+### GET /api/stock/low-alerts
+#### Returns products that have reached their configured reorder threshold.
+
+### Bulk Stock Update
+### POST /api/stock/bulk-update
+#### Bulk update stock quantities using CSV or structured payload.
+
+## Analytics
+
+### Dashboard KPIs
+### GET /api/analytics/dashboard-kpis
+#### Returns key dashboard metrics such as inventory value and recent activity.
+
+### Total Inventory Value
+### GET /api/analytics/stock-value
+#### Calculates total inventory value using quantity and pricing.
+
+### Slow Moving Items
+### GET /api/analytics/slow-moving
+#### Returns products with low sales velocity.
+
+
+## Import / Export
+
+
+### Import Products
+### POST /api/import/products
+#### Uploads products using CSV or Excel files.
+
+### Import Employees
+### POST /api/import/employees
+#### Uploads employee data in bulk.
+
+### Export Inventory
+### GET /api/export/inventory
+#### Exports inventory data as CSV.
+
+### Export Transactions
+### GET /api/export/transactions
+#### Exports transaction history as CSV.
+
+### Audit & Activity
+### Get All Audit Logs (Admin Only)
+### GET /api/audit/logs
+#### Returns complete system audit logs.
+
+### Entity Audit History
+### GET /api/audit/entity/{id}
+#### Returns audit history for a specific entity.
+
+### User Activity
+### GET /api/audit/user/{userId}
+#### Returns actions performed by a specific user.
+
+## Notifications
+
+### Get Notifications
+### GET /api/notifications
+#### Fetch notifications for the authenticated user.
+
+### Mark Notification as Read
+### PUT /api/notifications/{id}/read
+#### Marks a notification as read.
+
+### Update Notification Preferences
+### POST /api/notifications/settings
+#### Updates notification preferences for the user.
 
-Security & Access Control
-
-Stateless JWT authentication
-
-Role-Based Access Control (RBAC)
-
-Restricted UI/API access per role
-
-Roles
-
-ADMIN
-
-Full system access
-
-User & role management
-
-Audit logs and analytics
-
-MANAGER
-
-Inventory oversight
-
-Reports & dashboards
-
-Low-stock alerts
-
-EMPLOYEE
-
-Stock viewing and updates
-
-Transaction creation
-
-Limited data visibility
-
-Concurrency & Data Integrity
-
-Optimistic locking to handle simultaneous updates
-
-Transactional boundaries to avoid race conditions
-
-Safe multi-user stock updates
-
-Reporting & Analytics
-
-Inventory valuation
-
-Low-stock and slow-moving item detection
-
-Transaction history per employee
-
-Dashboard KPIs for operational insights
-
-Import / Export
-
-Bulk inventory and employee import via CSV/Excel
-
-Export inventory and transaction data for reporting
-
-Tech Stack
-Layer	Technology
-Framework	Spring Boot
-Security	Spring Security (JWT, RBAC)
-ORM	Hibernate / JPA
-Database	MySQL / PostgreSQL
-Reporting	CSV / PDF generation
-Build Tool	Maven
-Tools	Git, Postman
-Backend Architecture
-Controllers
-
-RESTful endpoint exposure
-
-DTO-based request validation
-
-Clear HTTP status handling
-
-Services
-
-Core business logic
-
-@Transactional boundaries for consistency
-
-Validation and rule enforcement
-
-Repositories
-
-JPA repositories
-
-Custom queries for analytics and reporting
-
-Security
-
-JWT-based stateless authentication
-
-Method-level authorization
-
-Fine-grained role enforcement
-
-API Reference (Sample)
-Authentication
-POST /api/auth/login
-
-
-Returns a JWT token required for all protected endpoints.
-
-Inventory & Stock Transactions
-POST /api/stock/adjust
-GET  /api/stock/transactions
-GET  /api/stock/low-alerts
-POST /api/stock/bulk-update
-
-Analytics & Reports
-GET  /api/analytics/dashboard-kpis
-GET  /api/analytics/stock-value
-GET  /api/analytics/slow-moving
-POST /api/reports/generate
-GET  /api/reports/download/{id}
-
-Audit & Activity
-GET /api/audit/logs
-GET /api/audit/entity/{id}
-GET /api/audit/user/{userId}
