@@ -6,11 +6,14 @@ import com.inventoryEmployee.demo.dto.request.RegisterRequest;
 import com.inventoryEmployee.demo.entity.Employee;
 import com.inventoryEmployee.demo.entity.Role;
 import com.inventoryEmployee.demo.entity.User;
+import com.inventoryEmployee.demo.entity.UserSession;
 import com.inventoryEmployee.demo.enums.UserRole;
 import com.inventoryEmployee.demo.repository.EmployeeRepository;
 import com.inventoryEmployee.demo.repository.RoleRepository;
 import com.inventoryEmployee.demo.repository.UserRepository;
+import com.inventoryEmployee.demo.repository.UserSessionRepository;
 import com.inventoryEmployee.demo.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,6 +43,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final EmployeeRepository employeeRepository;
+    private final UserSessionRepository userSessionRepository;
+    private final HttpServletRequest httpRequest;
 
     // Register new user
     public AuthResponse register(RegisterRequest request) {
@@ -130,6 +135,29 @@ public class AuthService {
             // Generate JWT token
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String token = jwtUtil.generateToken(userDetails);
+
+            // 4. --- RECORD SESSION ---
+            String ipAddress = httpRequest.getRemoteAddr();
+            // Handle proxy headers if behind Nginx/AWS LB
+            String xForwardedFor = httpRequest.getHeader("X-Forwarded-For");
+            if (xForwardedFor != null) {
+                ipAddress = xForwardedFor.split(",")[0];
+            }
+
+            UserSession session = UserSession.builder()
+                    .user(user)
+                    .sessionToken(token)
+                    .loginTime(LocalDateTime.now())
+                    .ipAddress(ipAddress)
+                    .userAgent(httpRequest.getHeader("User-Agent"))
+                    .isActive(true)
+                    .build();
+
+            userSessionRepository.save(session);
+
+            user.setLastLoginDate(LocalDateTime.now());
+            user.setFailedLoginAttempts(0);
+            userRepository.save(user);
 
             return AuthResponse.builder()
                     .token(token)

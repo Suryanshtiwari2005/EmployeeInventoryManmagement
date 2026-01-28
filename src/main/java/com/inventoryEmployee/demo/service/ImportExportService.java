@@ -33,6 +33,19 @@ public class ImportExportService {
             for (int i = 1; i < rows.size(); i++) {
                 String[] row = rows.get(i);
 
+                // FIX: Check if the row has enough columns (we need at least 4: Name, SKU, Desc, Price)
+                if (row.length < 4) {
+                    log.warn("Skipping invalid or empty row at line {}: {}", i + 1, java.util.Arrays.toString(row));
+                    continue;
+                }
+
+                // Optional: Handle empty strings to avoid parsing errors later
+                String priceStr = row[3];
+                if (priceStr == null || priceStr.trim().isEmpty()) {
+                    log.warn("Skipping row at line {} due to missing price", i + 1);
+                    continue;
+                }
+
                 Product product = Product.builder()
                         .name(row[0])
                         .sku(row[1])
