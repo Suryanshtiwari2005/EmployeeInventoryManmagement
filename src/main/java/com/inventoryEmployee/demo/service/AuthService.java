@@ -7,6 +7,9 @@ import com.inventoryEmployee.demo.entity.Employee;
 import com.inventoryEmployee.demo.entity.Role;
 import com.inventoryEmployee.demo.entity.User;
 import com.inventoryEmployee.demo.entity.UserSession;
+import com.inventoryEmployee.demo.enums.EmployeeStatus;
+import com.inventoryEmployee.demo.enums.NotificationPriority;
+import com.inventoryEmployee.demo.enums.NotificationType;
 import com.inventoryEmployee.demo.enums.UserRole;
 import com.inventoryEmployee.demo.repository.EmployeeRepository;
 import com.inventoryEmployee.demo.repository.RoleRepository;
@@ -28,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -45,6 +49,7 @@ public class AuthService {
     private final EmployeeRepository employeeRepository;
     private final UserSessionRepository userSessionRepository;
     private final HttpServletRequest httpRequest;
+    private final NotificationService notificationService;
 
     // Register new user
     public AuthResponse register(RegisterRequest request) {
@@ -66,6 +71,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .position("Employee")
                 .hireDate(LocalDate.now())
+                .status(EmployeeStatus.PENDING_APPROVAL)
                 .build();
 
         Employee savedEmployee = employeeRepository.save(employee);
@@ -76,7 +82,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .employee(savedEmployee)
-                .enabled(true)
+                .enabled(false)
                 .accountNonLocked(true)
                 .failedLoginAttempts(0)
                 .build();
@@ -91,19 +97,77 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // Generate JWT token
-        UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getUsername());
-        String token = jwtUtil.generateToken(userDetails);
+        notifyAdminsOfNewRegistration(savedUser);
+
+//        // Generate JWT token
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getUsername());
+//        String token = jwtUtil.generateToken(userDetails);
 
         return AuthResponse.builder()
-                .token(token)
+                .token(null)
                 .username(savedUser.getUsername())
                 .email(savedUser.getEmail())
-                .roles(savedUser.getRoles().stream()
-                        .map(role -> role.getName().name())
-                        .toList())
-                .message("User registered successfully")
+                .roles(List.of("EMPLOYEE"))
+                .message("Registration successful. Please wait for Admin approval.")
                 .build();
+    }
+
+    // 2. NEW: Approve User Method
+    public void approveUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Enable User
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        // Update Employee Status
+        if (user.getEmployee() != null) {
+            user.getEmployee().setStatus(EmployeeStatus.ACTIVE);
+            employeeRepository.save(user.getEmployee());
+        }
+
+        // Notify the User
+        notificationService.createNotification(
+                user,
+                NotificationType.SYSTEM_ALERT,
+                "Account Approved",
+                "Your account has been approved. You can now login.",
+                "/login",
+                NotificationPriority.HIGH
+        );
+        log.info("User {} approved by admin", user.getUsername());
+    }
+
+    // 3. NEW: Reject User Method
+    public void rejectUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Hard delete or Soft delete based on preference.
+        // Usually hard delete for rejected registrations to clean up DB.
+        userRepository.delete(user);
+        if (user.getEmployee() != null) {
+            employeeRepository.delete(user.getEmployee());
+        }
+        log.info("User {} rejected and deleted by admin", user.getUsername());
+    }
+
+    // Helper to notify admins
+    private void notifyAdminsOfNewRegistration(User newUser) {
+        // You need a repository method to find Admins, or filter them manually
+        List<User> admins = userRepository.findByRoleName(UserRole.ADMIN);
+
+        for (User admin : admins) {
+            notificationService.createNotification(
+                    admin,
+                    NotificationType.APPROVAL_REQUEST,
+                    "New Registration Request",
+                    "User " + newUser.getUsername() + " (" + newUser.getEmail() + ") requested access.",
+                    "/admin/approvals", // Link to your frontend approval page
+                    NotificationPriority.HIGH
+            );
+        }
     }
 
     // Login user
@@ -194,5 +258,34 @@ public class AuthService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    // New Method for OTP Login
+    public AuthResponse loginViaOtp(String email) {
+        // 1. Find User
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 2. Load UserDetails (Standard Spring Security user)
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+
+        // 3. Generate JWT
+        String token = jwtUtil.generateToken(userDetails);
+
+        // 4. Record Session
+        recordUserSession(user, token); // Use the logic you wrote earlier for saving sessions
+
+        return AuthResponse.builder()
+                .token(token)
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .roles(user.getRoles().stream().map(r -> r.getName().name()).toList())
+                .message("Login Successful via OTP")
+                .build();
+    }
+
+    // Extract your session recording logic into a helper method if you haven't already
+    private void recordUserSession(User user, String token) {
+        // ... (Your existing code to save UserSession) ...
     }
 }

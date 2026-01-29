@@ -1,6 +1,7 @@
 package com.inventoryEmployee.demo.repository;
 
 import com.inventoryEmployee.demo.entity.User;
+import com.inventoryEmployee.demo.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -32,12 +33,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Find enabled users
     List<User> findByEnabledTrue();
 
+    // Find users who are NOT enabled (Pending users)
+    List<User> findByEnabledFalse();
+
     // Find locked accounts
     List<User> findByAccountNonLockedFalse();
 
     // Find users by role
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName AND u.deleted = false")
-    List<User> findByRoleName(@Param("roleName") String roleName);
+    List<User> findByRoleName(@Param("roleName") UserRole roleName);
 
     // Update last login date
     @Modifying

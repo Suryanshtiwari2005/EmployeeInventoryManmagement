@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inventoryEmployee.demo.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,6 +29,7 @@ public class Role {
 
     // Relationships
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
     private Set<User> users = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)

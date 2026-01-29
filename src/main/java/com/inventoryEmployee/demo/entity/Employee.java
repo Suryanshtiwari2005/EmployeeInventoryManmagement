@@ -1,5 +1,7 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inventoryEmployee.demo.enums.EmployeeStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -76,6 +78,7 @@ public class Employee extends BaseEntity {
     private Department department;
 
     @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
+    @JsonBackReference
     private User user;
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)

@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -47,6 +48,7 @@ public class User extends BaseEntity {
     // Relationships
     @OneToOne
     @JoinColumn(name = "employee_id")
+    @JsonManagedReference
     private Employee employee;
 
     @ManyToMany(fetch = FetchType.EAGER)
