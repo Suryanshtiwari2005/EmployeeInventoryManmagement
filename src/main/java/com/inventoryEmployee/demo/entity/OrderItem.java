@@ -1,5 +1,6 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -20,14 +21,17 @@ public class OrderItem extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonBackReference
     private Product product;
 
     @Min(value = 1, message = "Quantity must be at least 1")
     @Column(nullable = false)
+    @JsonBackReference
     private Integer quantity;
 
     @DecimalMin(value = "0.0")

@@ -1,5 +1,8 @@
 package com.inventoryEmployee.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.inventoryEmployee.demo.enums.OrderStatus;
 import com.inventoryEmployee.demo.enums.OrderType;
 import jakarta.persistence.*;
@@ -64,12 +67,15 @@ public class Order extends BaseEntity {
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
+    @JsonBackReference
     private Employee employee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
+    @JsonManagedReference
     private Supplier supplier;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<OrderItem> orderItems;
 }

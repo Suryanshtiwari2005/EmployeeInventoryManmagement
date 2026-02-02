@@ -80,6 +80,12 @@ public class ProductService {
         return productRepository.findByDeletedFalse(pageable);
     }
 
+    // Global Search Service
+    @Transactional(readOnly = true)
+    public Page<Product> searchProductsGlobal(String keyword, Pageable pageable) {
+        return productRepository.searchGlobal(keyword, pageable);
+    }
+
     // Update product
     public Product updateProduct(Long id, Product updatedProduct) {
         Product existingProduct = getProductById(id);

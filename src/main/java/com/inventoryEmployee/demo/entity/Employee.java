@@ -85,5 +85,6 @@ public class Employee extends BaseEntity {
     private List<StockTransaction> stockTransactions;
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @JsonBackReference
     private List<Order> orders;
 }

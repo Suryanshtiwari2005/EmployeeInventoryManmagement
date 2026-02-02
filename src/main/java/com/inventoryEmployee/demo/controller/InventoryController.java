@@ -38,21 +38,36 @@ public class InventoryController {
     private final ProductRepository productRepository;
 
 
-    // Helper method to get employee from authentication
+//    // Helper method to get employee from authentication
+//    private Employee getEmployeeFromAuth(Authentication authentication) {
+//        String username = authentication.getName();
+//        return employeeRepository.findByEmail(username)
+//                .orElseGet(() -> {
+//                    // Create a system user if no employee found
+//                    Employee systemUser = Employee.builder()
+//                            .firstName("System")
+//                            .lastName("User")
+//                            .email(username)
+//                            .phone("0000000000")
+//                            .position("System")
+//                            .build();
+//                    return employeeRepository.save(systemUser);
+//                });
+//    }
+
     private Employee getEmployeeFromAuth(Authentication authentication) {
-        String username = authentication.getName();
-        return employeeRepository.findByEmail(username)
-                .orElseGet(() -> {
-                    // Create a system user if no employee found
-                    Employee systemUser = Employee.builder()
-                            .firstName("System")
-                            .lastName("User")
-                            .email(username)
-                            .phone("0000000000")
-                            .position("System")
-                            .build();
-                    return employeeRepository.save(systemUser);
-                });
+        String username = authentication.getName(); // Returns "superadmin"
+
+        // 1. Find the User credentials first
+        com.inventoryEmployee.demo.entity.User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+        // 2. Return the linked Employee profile
+        if (user.getEmployee() == null) {
+            throw new RuntimeException("User " + username + " is not linked to an employee profile.");
+        }
+
+        return user.getEmployee();
     }
 
     // Get inventory by ID

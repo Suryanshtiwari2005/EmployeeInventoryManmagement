@@ -92,4 +92,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                 @Param("maxPrice") BigDecimal maxPrice,
                                 @Param("searchTerm") String searchTerm,
                                 Pageable pageable);
+
+    // GLOBAL SEARCH: Looks for text in Product Name, SKU, Description, Category Name, and Supplier Name
+    @Query("SELECT p FROM Product p " +
+            "LEFT JOIN p.category c " +
+            "LEFT JOIN p.supplier s " +
+            "WHERE " +
+            "p.deleted = false AND (" +
+            "   LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "   LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "   LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "   LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "   LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            ")")
+    Page<Product> searchGlobal(@Param("keyword") String keyword, Pageable pageable);
 }

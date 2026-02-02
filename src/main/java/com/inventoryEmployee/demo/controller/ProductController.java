@@ -43,6 +43,17 @@ public class ProductController {
         return new ResponseEntity<>(mapToResponse(created), HttpStatus.CREATED);
     }
 
+    // Global Search (Name, Category, Supplier, SKU)
+    @GetMapping("/search-global")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    public ResponseEntity<Page<ProductResponse>> searchGlobal(
+            @RequestParam String query,
+            Pageable pageable) {
+
+        Page<Product> products = productService.searchProductsGlobal(query, pageable);
+        return ResponseEntity.ok(products.map(this::mapToResponse));
+    }
+
     // Get product by ID
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
