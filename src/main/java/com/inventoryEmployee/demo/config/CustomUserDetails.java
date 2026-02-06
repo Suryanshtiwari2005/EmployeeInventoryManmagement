@@ -17,7 +17,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name())) // Ensure Role.getName() returns the Enum or String
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName())) // Ensure Role.getName() returns the Enum or String
                 .collect(Collectors.toList());
     }
 

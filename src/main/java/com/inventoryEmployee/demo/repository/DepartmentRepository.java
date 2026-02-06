@@ -37,4 +37,6 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
             "LEFT JOIN d.employees e WHERE e.deleted = false " +
             "GROUP BY d")
     List<Object[]> findDepartmentsWithEmployeeCount();
+
+
 }

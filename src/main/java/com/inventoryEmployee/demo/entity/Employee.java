@@ -75,6 +75,7 @@ public class Employee extends BaseEntity {
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
+    @JsonBackReference
     private Department department;
 
     @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)

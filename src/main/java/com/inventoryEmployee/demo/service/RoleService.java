@@ -28,7 +28,7 @@ public class RoleService {
     private final UserRepository userRepository;
 
     // Create new role
-    public Role createRole(UserRole roleName, String description) {
+    public Role createRole(String roleName, String description) {
         log.info("Creating new role: {}", roleName);
 
         if (roleRepository.existsByName(roleName)) {
@@ -52,7 +52,7 @@ public class RoleService {
 
     // Get role by name
     @Transactional(readOnly = true)
-    public Role getRoleByName(UserRole roleName) {
+    public Role getRoleByName(String roleName) {
         return roleRepository.findByName(roleName)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
     }
@@ -82,7 +82,7 @@ public class RoleService {
     }
 
     // Assign role to user
-    public User assignRoleToUser(Long userId, UserRole roleName) {
+    public User assignRoleToUser(Long userId, String roleName) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 

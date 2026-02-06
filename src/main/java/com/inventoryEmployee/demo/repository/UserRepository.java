@@ -41,7 +41,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Find users by role
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName AND u.deleted = false")
-    List<User> findByRoleName(@Param("roleName") UserRole roleName);
+    List<User> findByRoleName(@Param("roleName") String roleName);
 
     // Update last login date
     @Modifying

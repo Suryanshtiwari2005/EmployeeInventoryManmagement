@@ -88,7 +88,7 @@ public class AuthService {
                 .build();
 
         // Assign default role (EMPLOYEE)
-        Role defaultRole = roleRepository.findByName(UserRole.EMPLOYEE)
+        Role defaultRole = roleRepository.findByName("EMPLOYEE")
                 .orElseThrow(() -> new RuntimeException("Default role not found"));
 
         Set<Role> roles = new HashSet<>();
@@ -156,7 +156,7 @@ public class AuthService {
     // Helper to notify admins
     private void notifyAdminsOfNewRegistration(User newUser) {
         // You need a repository method to find Admins, or filter them manually
-        List<User> admins = userRepository.findByRoleName(UserRole.ADMIN);
+        List<User> admins = userRepository.findByRoleName("ADMIN");
 
         for (User admin : admins) {
             notificationService.createNotification(
@@ -228,7 +228,7 @@ public class AuthService {
                     .username(user.getUsername())
                     .email(user.getEmail())
                     .roles(user.getRoles().stream()
-                            .map(role -> role.getName().name())
+                            .map(Role::getName)
                             .toList())
                     .message("Login successful")
                     .build();
@@ -279,13 +279,31 @@ public class AuthService {
                 .token(token)
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .roles(user.getRoles().stream().map(r -> r.getName().name()).toList())
+                .roles(user.getRoles()
+                        .stream()
+                        .map(Role::getName)
+                        .toList())
                 .message("Login Successful via OTP")
                 .build();
     }
 
     // Extract your session recording logic into a helper method if you haven't already
     private void recordUserSession(User user, String token) {
-        // ... (Your existing code to save UserSession) ...
+        String ipAddress = httpRequest.getRemoteAddr();
+        String xForwardedFor = httpRequest.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null) {
+            ipAddress = xForwardedFor.split(",")[0];
+        }
+
+        UserSession session = UserSession.builder()
+                .user(user)
+                .sessionToken(token)
+                .loginTime(LocalDateTime.now())
+                .ipAddress(ipAddress)
+                .userAgent(httpRequest.getHeader("User-Agent"))
+                .isActive(true)
+                .build();
+
+        userSessionRepository.save(session);
     }
 }

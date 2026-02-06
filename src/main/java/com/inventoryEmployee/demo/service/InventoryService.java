@@ -92,6 +92,7 @@ public class InventoryService {
     }
 
     // Add stock (IN transaction)
+    @Transactional
     public Inventory addStock(Long productId, Integer quantity, StockMovementReason reason,
                               String notes, Long employeeId) {
         if (quantity <= 0) {
@@ -104,7 +105,13 @@ public class InventoryService {
                 .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + employeeId));
 
         Inventory inventory = getInventoryByProductId(productId);
-        int previousQuantity = inventory.getQuantityAvailable();
+        // --- CHANGE THIS LINE ---
+        // Old (Dangerous): int previousQuantity = inventory.getQuantityAvailable();
+        // New (Safe): Handle nulls explicitly
+        int previousQuantity = (inventory.getQuantityAvailable() != null)
+                ? inventory.getQuantityAvailable()
+                : 0;
+
         int newQuantity = previousQuantity + quantity;
 
         log.info("Adding {} units to product {}", quantity, productId);

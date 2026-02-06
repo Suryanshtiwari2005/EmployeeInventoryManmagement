@@ -120,12 +120,12 @@ public class InventoryController {
         Employee employee = getEmployeeFromAuth(authentication);
 
         // Use the quantity field for ADD operation
-        Inventory inventory = inventoryService.removeStock(
+        Inventory inventory = inventoryService.addStock(
                 request.getProductId(),
                 request.getQuantity(),
                 request.getReason(),
                 request.getNotes(),
-                employee
+                employee.getId()
         );
 
         return ResponseEntity.ok(mapToResponse(inventory));

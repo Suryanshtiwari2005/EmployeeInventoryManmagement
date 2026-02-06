@@ -20,9 +20,9 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
+
     @Column(unique = true, nullable = false, length = 20)
-    private UserRole name;   //ENUM
+    private String name;
 
     @Column(length = 255)
     private String description;

@@ -32,7 +32,7 @@ public class RoleController {
     // Get role by name
     @GetMapping("/{roleName}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Role> getRoleByName(@PathVariable UserRole roleName) {
+    public ResponseEntity<Role> getRoleByName(@PathVariable String roleName) {
         Role role = roleService.getRoleByName(roleName);
         return ResponseEntity.ok(role);
     }
@@ -41,7 +41,7 @@ public class RoleController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Role> createRole(@RequestBody Map<String, String> request) {
-        UserRole roleName = UserRole.valueOf(request.get("name"));
+        String roleName = request.get("name").toUpperCase();
         String description = request.get("description");
 
         Role role = roleService.createRole(roleName, description);
@@ -73,7 +73,7 @@ public class RoleController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> assignRoleToUser(@RequestBody Map<String, Object> request) {
         Long userId = Long.valueOf(request.get("userId").toString());
-        UserRole roleName = UserRole.valueOf(request.get("roleName").toString());
+        String roleName = request.get("roleName").toString().toUpperCase();
 
         User user = roleService.assignRoleToUser(userId, roleName);
         return ResponseEntity.ok(user);
