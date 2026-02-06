@@ -161,12 +161,12 @@ public class InventoryController {
         Employee employee = getEmployeeFromAuth(authentication);
 
         // Use the quantity field for ADD operation
-        Inventory inventory = inventoryService.addStock(
+        Inventory inventory = inventoryService.adjustStock(
                 request.getProductId(),
                 request.getNewQuantity(),  // Use quantity, not newQuantity
                 request.getReason(),
                 request.getNotes(),
-                employee.getId()
+                employee
         );
 
         return ResponseEntity.ok(mapToResponse(inventory));
@@ -250,23 +250,23 @@ public class InventoryController {
         return ResponseEntity.ok(responsePage);
     }
 
-    private Inventory maptoEntity(StockAdjustmentRequest request){
-        Inventory inventory = new Inventory();
-
-        if (request.getProductId() != null) {
-            Product product = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
-            inventory.setProduct(product);
-        }
-
-        if (request.getNewQuantity() != null) {
-            inventory.setQuantityAvailable(request.getNewQuantity());
-        } else {
-            inventory.setQuantityAvailable(request.getQuantity());
-        }
-
-        return inventory;
-    }
+//    private Inventory maptoEntity(StockAdjustmentRequest request){
+//        Inventory inventory = new Inventory();
+//
+//        if (request.getProductId() != null) {
+//            Product product = productRepository.findById(request.getProductId())
+//                    .orElseThrow(() -> new RuntimeException("Product not found"));
+//            inventory.setProduct(product);
+//        }
+//
+//        if (request.getNewQuantity() != null) {
+//            inventory.setQuantityAvailable(request.getNewQuantity());
+//        } else {
+//            inventory.setQuantityAvailable(request.getQuantity());
+//        }
+//
+//        return inventory;
+//    }
 
     private Inventory mapInventoryRequestEntity(InventoryRequest request){
         Inventory inventory = new Inventory();

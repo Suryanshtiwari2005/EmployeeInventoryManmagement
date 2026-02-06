@@ -109,8 +109,8 @@ public class InventoryService {
         // Old (Dangerous): int previousQuantity = inventory.getQuantityAvailable();
         // New (Safe): Handle nulls explicitly
         int previousQuantity = (inventory.getQuantityAvailable() != null)
-                ? inventory.getQuantityAvailable()
-                : 0;
+                                ? inventory.getQuantityAvailable()
+                                : 0;
 
         int newQuantity = previousQuantity + quantity;
 
