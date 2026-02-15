@@ -30,8 +30,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Check if email exists
     boolean existsByEmail(String email);
 
-    // Find enabled users
-    List<User> findByEnabledTrue();
 
     // Find users who are NOT enabled (Pending users)
     List<User> findByEnabledFalse();

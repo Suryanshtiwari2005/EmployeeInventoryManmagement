@@ -34,6 +34,7 @@ public class Category extends BaseEntity {
     private String imageUrl;
 
     // Self-referencing for parent category
+    //remove one from jsonignoreproeprties to avoid infinite recursion product or employee
     @ManyToOne
     @JoinColumn(name = "parent_category_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "employees","products"})

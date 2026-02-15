@@ -26,10 +26,10 @@ public class StockTransactionService {
     private final HttpServletRequest request;
 
     // Record a stock transaction
-    public StockTransaction recordTransaction(Product product, Employee employee,
-                                              TransactionType type, StockMovementReason reason,
-                                              Integer quantity, Integer previousQuantity,
-                                              Integer newQuantity, String notes) {
+    public void recordTransaction(Product product, Employee employee,
+                                  TransactionType type, StockMovementReason reason,
+                                  Integer quantity, Integer previousQuantity,
+                                  Integer newQuantity, String notes) {
 
         log.info("Recording {} transaction for product {} by employee {}",
                 type, product.getId(), employee != null ? employee.getId() : "SYSTEM");
@@ -52,7 +52,7 @@ public class StockTransactionService {
                 .performedBy(employee != null ? employee.getEmail() : "SYSTEM")
                 .build();
 
-        return stockTransactionRepository.save(transaction);
+        stockTransactionRepository.save(transaction);
     }
 
     // Get transactions by product

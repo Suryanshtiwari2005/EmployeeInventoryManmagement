@@ -105,9 +105,6 @@ public class InventoryService {
                 .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + employeeId));
 
         Inventory inventory = getInventoryByProductId(productId);
-        // --- CHANGE THIS LINE ---
-        // Old (Dangerous): int previousQuantity = inventory.getQuantityAvailable();
-        // New (Safe): Handle nulls explicitly
         int previousQuantity = (inventory.getQuantityAvailable() != null)
                                 ? inventory.getQuantityAvailable()
                                 : 0;

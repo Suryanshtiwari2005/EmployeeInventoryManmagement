@@ -25,9 +25,7 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
-    private final EmployeeRepository employeeRepository;
     private final SupplierRepository supplierRepository;
     private final AuditService auditService;
     private final InventoryService inventoryService;
@@ -69,9 +67,6 @@ public class OrderService {
             Product product = productRepository.findById(itemRequest.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-            // --- CRITICAL FIX START ---
-            // 1. Check and Remove Stock
-            // We pass "SALES" as the reason and the order number as a note
             inventoryService.removeStock(
                     product.getId(),
                     itemRequest.getQuantity(),
@@ -162,8 +157,6 @@ public class OrderService {
         Order order = getOrderById(id);
         log.info("Soft deleting order: {}", id);
 
-        // --- CRITICAL FIX START ---
-        // If order was not already cancelled, return stock
         if (order.getStatus() != OrderStatus.CANCELLED) {
             for (OrderItem item : order.getOrderItems()) {
                 inventoryService.addStock(

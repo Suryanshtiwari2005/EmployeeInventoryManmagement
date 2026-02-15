@@ -32,7 +32,7 @@ public class CategoryController {
             throw new IllegalArgumentException("Category with name '" + request.getName() + "' already exists");
         }
 
-        Category category = maptoEntity(request);
+        Category category = mapToEntity(request);
 
         Category created = categoryRepository.save(category);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
@@ -142,7 +142,7 @@ public class CategoryController {
     }
      //
 
-    private Category maptoEntity(CategoryRequest request){
+    private Category mapToEntity(CategoryRequest request){
         Category category = Category.builder()
                 .name(request.getName())
                 .description(request.getDescription())

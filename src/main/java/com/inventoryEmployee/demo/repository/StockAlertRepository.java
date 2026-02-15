@@ -15,31 +15,13 @@ import java.util.List;
 @Repository
 public interface StockAlertRepository extends JpaRepository<StockAlert, Long> {
 
-    // Find by product ID
-    List<StockAlert> findByProductId(Long productId);
-
-    // Find by alert type
-    List<StockAlert> findByAlertType(AlertType alertType);
-    Page<StockAlert> findByAlertType(AlertType alertType, Pageable pageable);
 
     // Find unresolved alerts
     List<StockAlert> findByIsResolvedFalse();
     Page<StockAlert> findByIsResolvedFalse(Pageable pageable);
 
-    // Find resolved alerts
-    List<StockAlert> findByIsResolvedTrue();
-
-    // Find alerts where email not sent
-    List<StockAlert> findByEmailSentFalseAndIsResolvedFalse();
-
-    // Find alerts by date range
-    List<StockAlert> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
-
     // Count unresolved alerts
     Long countByIsResolvedFalse();
-
-    // Count unresolved alerts by type
-    Long countByAlertTypeAndIsResolvedFalse(AlertType alertType);
 
     // Find unresolved alerts for a product
     @Query("SELECT sa FROM StockAlert sa WHERE sa.product.id = :productId " +

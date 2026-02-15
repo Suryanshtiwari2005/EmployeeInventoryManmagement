@@ -13,12 +13,6 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    // Find by name
-    Optional<Category> findByName(String name);
-
-    // Find by code
-    Optional<Category> findByCode(String code);
-
     // Find root categories (no parent)
     List<Category> findByParentCategoryIsNull();
 
@@ -26,7 +20,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByParentCategoryId(Long parentCategoryId);
 
     // Find active categories (not soft deleted)
-    List<Category> findByDeletedFalse();
     Page<Category> findByDeletedFalse(Pageable pageable);
 
     // Check if category name exists

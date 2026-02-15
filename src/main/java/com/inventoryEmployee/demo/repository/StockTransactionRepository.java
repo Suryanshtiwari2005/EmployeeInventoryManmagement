@@ -17,53 +17,22 @@ import java.util.List;
 public interface StockTransactionRepository extends JpaRepository<StockTransaction, Long> {
 
     // Find by product ID
-    List<StockTransaction> findByProductId(Long productId);
     Page<StockTransaction> findByProductId(Long productId, Pageable pageable);
 
     // Find by employee ID
-    List<StockTransaction> findByEmployeeId(Long employeeId);
     Page<StockTransaction> findByEmployeeId(Long employeeId, Pageable pageable);
 
-    // Find by transaction type
-    List<StockTransaction> findByType(TransactionType type);
-    Page<StockTransaction> findByType(TransactionType type, Pageable pageable);
-
     // Find transactions in date range
-    List<StockTransaction> findByTransactionDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     Page<StockTransaction> findByTransactionDateBetween(LocalDateTime startDate,
                                                         LocalDateTime endDate,
                                                         Pageable pageable);
-
-    // Find by product and date range
-    @Query("SELECT st FROM StockTransaction st WHERE st.product.id = :productId " +
-            "AND st.transactionDate BETWEEN :startDate AND :endDate " +
-            "ORDER BY st.transactionDate DESC")
-    List<StockTransaction> findByProductAndDateRange(@Param("productId") Long productId,
-                                                     @Param("startDate") LocalDateTime startDate,
-                                                     @Param("endDate") LocalDateTime endDate);
 
     // Find recent transactions
     @Query("SELECT st FROM StockTransaction st ORDER BY st.transactionDate DESC")
     Page<StockTransaction> findRecentTransactions(Pageable pageable);
 
-    // Find transactions by username
-    List<StockTransaction> findByPerformedBy(String username);
-
     // Count transactions by employee
     Long countByEmployeeId(Long employeeId);
-
-    // Count transactions by product
-    Long countByProductId(Long productId);
-
-    // Get total quantity IN for a product
-    @Query("SELECT SUM(st.quantity) FROM StockTransaction st " +
-            "WHERE st.product.id = :productId AND st.type = 'IN'")
-    Integer getTotalQuantityIn(@Param("productId") Long productId);
-
-    // Get total quantity OUT for a product
-    @Query("SELECT SUM(st.quantity) FROM StockTransaction st " +
-            "WHERE st.product.id = :productId AND st.type = 'OUT'")
-    Integer getTotalQuantityOut(@Param("productId") Long productId);
 
     long countByTransactionDateBetween(LocalDateTime start, LocalDateTime end);
 

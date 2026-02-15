@@ -17,38 +17,12 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    // Find by user ID
-    List<Notification> findByUserId(Long userId);
-    Page<Notification> findByUserId(Long userId, Pageable pageable);
-
     // Find unread notifications by user
     List<Notification> findByUserIdAndIsReadFalse(Long userId);
-    Page<Notification> findByUserIdAndIsReadFalse(Long userId, Pageable pageable);
-
-    // Find read notifications by user
-    List<Notification> findByUserIdAndIsReadTrue(Long userId);
-
-    // Find by notification type
-    List<Notification> findByType(NotificationType type);
-    Page<Notification> findByType(NotificationType type, Pageable pageable);
-
-    // Find by priority
-    List<Notification> findByPriority(NotificationPriority priority);
-    Page<Notification> findByPriority(NotificationPriority priority, Pageable pageable);
-
-    // Find by user and type
-    List<Notification> findByUserIdAndType(Long userId, NotificationType type);
-
-    // Find by date range
-    List<Notification> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     // Count unread notifications by user
     Long countByUserIdAndIsReadFalse(Long userId);
 
-    // Count urgent unread notifications
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.user.id = :userId " +
-            "AND n.isRead = false AND n.priority = 'URGENT'")
-    Long countUrgentUnreadNotifications(@Param("userId") Long userId);
 
     // Find recent notifications for user
     @Query("SELECT n FROM Notification n WHERE n.user.id = :userId " +

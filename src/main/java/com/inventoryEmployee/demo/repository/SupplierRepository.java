@@ -15,37 +15,8 @@ import java.util.Optional;
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
-    // Find by name
-    Optional<Supplier> findByName(String name);
 
-    // Find by email
-    Optional<Supplier> findByEmail(String email);
-
-    // Find by status
-    List<Supplier> findByStatus(SupplierStatus status);
-    Page<Supplier> findByStatus(SupplierStatus status, Pageable pageable);
-
-    // Find active suppliers (not soft deleted)
-    List<Supplier> findByDeletedFalse();
     Page<Supplier> findByDeletedFalse(Pageable pageable);
-
-    // Find by city
-    List<Supplier> findByCityIgnoreCase(String city);
-
-    // Find by country
-    List<Supplier> findByCountryIgnoreCase(String country);
-
-    // Search by name
-    @Query("SELECT s FROM Supplier s WHERE " +
-            "LOWER(s.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) AND " +
-            "s.deleted = false")
-    Page<Supplier> searchByName(@Param("searchTerm") String searchTerm, Pageable pageable);
-
-    // Check if supplier exists
-    boolean existsByEmailAndDeletedFalse(String email);
-
-    // Count suppliers by status
-    Long countByStatusAndDeletedFalse(SupplierStatus status);
 
     // Find suppliers with filters
     @Query("SELECT s FROM Supplier s WHERE " +

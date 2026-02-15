@@ -62,7 +62,7 @@ public class NotificationController {
     @GetMapping("/count/unread")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Long> countUnreadNotifications(Authentication authentication) {
-        Long userId = 1L; // Replace with actual user ID from auth
+        Long userId = getCurrentUserId(authentication); // Replace with actual user ID from auth
         Long count = notificationService.countUnreadNotifications(userId);
         return ResponseEntity.ok(count);
     }
@@ -79,7 +79,7 @@ public class NotificationController {
     @PutMapping("/read-all")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Void> markAllAsRead(Authentication authentication) {
-        Long userId = 1L; // Replace with actual user ID from auth
+        Long userId = getCurrentUserId(authentication); // Replace with actual user ID from auth
         notificationService.markAllAsRead(userId);
         return ResponseEntity.ok().build();
     }

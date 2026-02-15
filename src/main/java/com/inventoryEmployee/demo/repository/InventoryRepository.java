@@ -17,11 +17,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     // Find by product ID
     Optional<Inventory> findByProductId(Long productId);
 
-    // Find by location
-    List<Inventory> findByLocation(String location);
 
-    // Find active inventory items
-    List<Inventory> findByIsActiveTrue();
     Page<Inventory> findByIsActiveTrue(Pageable pageable);
 
     // Find low stock items (quantity below minimum)

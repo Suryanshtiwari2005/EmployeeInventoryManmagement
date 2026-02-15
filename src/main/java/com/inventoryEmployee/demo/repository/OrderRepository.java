@@ -21,25 +21,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Find by order number
     Optional<Order> findByOrderNumber(String orderNumber);
 
-    // Find by status
-    List<Order> findByStatus(OrderStatus status);
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
-
-    // Find by order type
-    List<Order> findByOrderType(OrderType orderType);
-    Page<Order> findByOrderType(OrderType orderType, Pageable pageable);
-
-    // Find by employee
-    List<Order> findByEmployeeId(Long employeeId);
-    Page<Order> findByEmployeeId(Long employeeId, Pageable pageable);
-
-    // Find by supplier
-    List<Order> findBySupplierId(Long supplierId);
-    Page<Order> findBySupplierId(Long supplierId, Pageable pageable);
-
-    // Find orders in date range
-    List<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
-    Page<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
     // Find recent orders
     @Query("SELECT o FROM Order o WHERE o.deleted = false ORDER BY o.orderDate DESC")

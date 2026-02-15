@@ -60,15 +60,4 @@ public class DepartmentController {
         return ResponseEntity.noContent().build();
     }
 
-//    private Department maptoEntity(DepartmentRequest request){
-//        Department department = new Department();
-//
-//        department.setName(request.getName());
-//        department.setDescription(request.getDescription());
-//        department.setLocation(request.getLocation());
-//        department.setHeadOfDepartment(request.getHeadOfDepartment());
-//
-//
-//        return department;
-//    }
 }

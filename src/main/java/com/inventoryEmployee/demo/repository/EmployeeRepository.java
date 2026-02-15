@@ -19,18 +19,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     // Find by email (for login/unique check)
     Optional<Employee> findByEmail(String email);
 
-    // Find by phone
-    Optional<Employee> findByPhone(String phone);
-
     // Find by department
     List<Employee> findByDepartmentId(Long departmentId);
-
-    Page<Employee> findByDepartmentId(Long departmentId, Pageable pageable);
-
-    // Find by status
-    List<Employee> findByStatus(EmployeeStatus status);
-
-    Page<Employee> findByStatus(EmployeeStatus status, Pageable pageable);
 
     // Find active employees (not soft deleted)
     List<Employee> findByDeletedFalse();
@@ -46,14 +36,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "LOWER(e.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     Page<Employee> searchByName(@Param("searchTerm") String searchTerm, Pageable pageable);
 
-    // Find employees hired in a date range
-    List<Employee> findByHireDateBetween(LocalDate startDate, LocalDate endDate);
-
-    // Find employees by position
-    List<Employee> findByPositionIgnoreCase(String position);
-
-    // Find employees with salary range
-    List<Employee> findBySalaryBetween(BigDecimal minSalary, BigDecimal maxSalary);
 
     // Count employees by department
     @Query("SELECT COUNT(e) FROM Employee e WHERE e.department.id = :departmentId AND e.deleted = false")

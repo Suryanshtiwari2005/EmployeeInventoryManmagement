@@ -65,12 +65,6 @@ public class JwtUtil {
         return createToken(claims, userDetails.getUsername());
     }
 
-    // Generate token with custom claims
-    public String generateToken(UserDetails userDetails, Map<String, Object> extraClaims) {
-        Map<String, Object> claims = new HashMap<>(extraClaims);
-        return createToken(claims, userDetails.getUsername());
-    }
-
     // Create token
     private String createToken(Map<String, Object> claims, String subject) {
         Date now = new Date();

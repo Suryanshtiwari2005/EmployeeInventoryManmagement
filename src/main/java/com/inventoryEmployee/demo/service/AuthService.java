@@ -200,6 +200,7 @@ public class AuthService {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String token = jwtUtil.generateToken(userDetails);
 
+            //When app. is on Internet
             // 4. --- RECORD SESSION ---
             String ipAddress = httpRequest.getRemoteAddr();
             // Handle proxy headers if behind Nginx/AWS LB

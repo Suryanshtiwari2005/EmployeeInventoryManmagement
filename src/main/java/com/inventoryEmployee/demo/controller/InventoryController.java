@@ -6,6 +6,7 @@ import com.inventoryEmployee.demo.dto.response.InventoryResponse;
 import com.inventoryEmployee.demo.entity.Employee;
 import com.inventoryEmployee.demo.entity.Inventory;
 import com.inventoryEmployee.demo.entity.Product;
+import com.inventoryEmployee.demo.entity.User;
 import com.inventoryEmployee.demo.enums.StockMovementReason;
 import com.inventoryEmployee.demo.repository.EmployeeRepository;
 import com.inventoryEmployee.demo.repository.ProductRepository;
@@ -32,34 +33,14 @@ import java.util.stream.Collectors;
 public class InventoryController {
 
     private final InventoryService inventoryService;
-    private final EmployeeService employeeService;
-    private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
-
-
-//    // Helper method to get employee from authentication
-//    private Employee getEmployeeFromAuth(Authentication authentication) {
-//        String username = authentication.getName();
-//        return employeeRepository.findByEmail(username)
-//                .orElseGet(() -> {
-//                    // Create a system user if no employee found
-//                    Employee systemUser = Employee.builder()
-//                            .firstName("System")
-//                            .lastName("User")
-//                            .email(username)
-//                            .phone("0000000000")
-//                            .position("System")
-//                            .build();
-//                    return employeeRepository.save(systemUser);
-//                });
-//    }
 
     private Employee getEmployeeFromAuth(Authentication authentication) {
         String username = authentication.getName(); // Returns "superadmin"
 
         // 1. Find the User credentials first
-        com.inventoryEmployee.demo.entity.User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
         // 2. Return the linked Employee profile
@@ -250,23 +231,6 @@ public class InventoryController {
         return ResponseEntity.ok(responsePage);
     }
 
-//    private Inventory maptoEntity(StockAdjustmentRequest request){
-//        Inventory inventory = new Inventory();
-//
-//        if (request.getProductId() != null) {
-//            Product product = productRepository.findById(request.getProductId())
-//                    .orElseThrow(() -> new RuntimeException("Product not found"));
-//            inventory.setProduct(product);
-//        }
-//
-//        if (request.getNewQuantity() != null) {
-//            inventory.setQuantityAvailable(request.getNewQuantity());
-//        } else {
-//            inventory.setQuantityAvailable(request.getQuantity());
-//        }
-//
-//        return inventory;
-//    }
 
     private Inventory mapInventoryRequestEntity(InventoryRequest request){
         Inventory inventory = new Inventory();

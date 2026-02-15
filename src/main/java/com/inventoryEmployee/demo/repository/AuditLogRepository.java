@@ -15,41 +15,16 @@ import java.util.List;
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
     // Find by entity name and ID
-    List<AuditLog> findByEntityNameAndEntityId(String entityName, Long entityId);
     Page<AuditLog> findByEntityNameAndEntityId(String entityName, Long entityId, Pageable pageable);
 
     // Find by user ID
     List<AuditLog> findByUserId(Long userId);
     Page<AuditLog> findByUserId(Long userId, Pageable pageable);
 
-    // Find by username
-    List<AuditLog> findByUsername(String username);
-    Page<AuditLog> findByUsername(String username, Pageable pageable);
-
-    // Find by action
-    List<AuditLog> findByAction(String action);
-    Page<AuditLog> findByAction(String action, Pageable pageable);
-
-    // Find by entity name
-    List<AuditLog> findByEntityName(String entityName);
-    Page<AuditLog> findByEntityName(String entityName, Pageable pageable);
-
-    // Find by date range
-    List<AuditLog> findByTimestampBetween(LocalDateTime startDate, LocalDateTime endDate);
-    Page<AuditLog> findByTimestampBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
-
-    // Find by IP address
-    List<AuditLog> findByIpAddress(String ipAddress);
-
     // Find recent audit logs
     @Query("SELECT a FROM AuditLog a ORDER BY a.timestamp DESC")
     Page<AuditLog> findRecentAuditLogs(Pageable pageable);
 
-    // Count logs by user
-    Long countByUserId(Long userId);
-
-    // Count logs by action
-    Long countByAction(String action);
 
     // Get user activity summary
     @Query("SELECT a.username, a.action, COUNT(a) FROM AuditLog a " +

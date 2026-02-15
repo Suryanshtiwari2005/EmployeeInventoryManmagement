@@ -40,8 +40,8 @@ public class NotificationService {
     }
 
     // Create notification
-    public Notification createNotification(User user, NotificationType type, String title,
-                                           String message, String link, NotificationPriority priority) {
+    public void createNotification(User user, NotificationType type, String title,
+                                   String message, String link, NotificationPriority priority) {
         Notification notification = Notification.builder()
                 .user(user)
                 .type(type)
@@ -53,7 +53,7 @@ public class NotificationService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return notificationRepository.save(notification);
+        notificationRepository.save(notification);
     }
 
     // Get user notifications
